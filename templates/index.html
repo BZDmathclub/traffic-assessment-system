@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>机动车交通事故民事赔偿智能评估系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #003d7a;
+            --primary-light: #0052a3;
+            --primary-lighter: #e8f0f8;
+            --accent-color: #d32f2f;
+            --text-dark: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --bg-light: #f9fafb;
+            --bg-white: #ffffff;
+            --success-color: #059669;
+            --warning-color: #d97706;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(to bottom, #f9fafb 0%, #f3f4f6 100%);
+            color: var(--text-dark);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .page-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: var(--primary-color);
+            padding: 40px 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-container {
+            width: 95%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header-title {
+            font-size: 32px;
+            font-weight: 500;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .main-content {
+            flex: 1;
+            width: 95%;
+            max-width: 1400px;
+            margin: 30px auto;
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 220px 1fr 340px;
+            gap: 20px;
+            height: fit-content;
+        }
+
+        .sidebar {
+            background: var(--bg-white);
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .sidebar-title {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .menu-item {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            font-size: 13px;
+            color: var(--text-dark);
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-item:hover {
+            background: var(--primary-lighter);
+            color: var(--primary-color);
+            padding-left: 20px;
+        }
+
+        .menu-item.active {
+            background: var(--primary-lighter);
+            color: var(--primary-color);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 13px;
+            font-weight: 600;
+        }
+
+        .menu-item.active::after {
+            content: '';
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 6px;
+            background: var(--accent-color);
+            border-radius: 50%;
+        }
+
+        .content-panel {
+            background: var(--bg-white);
+            border-radius: 6px;
+            padding: 30px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .content-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--primary-color);
+            letter-spacing: 0.3px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 13px;
+            letter-spacing: 0.2px;
+            text-align: right;
+            padding-right: 8px;
+            border-right: 1px solid var(--border-color);
+        }
+
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 13px;
+            color: var(--text-dark);
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%231f2937' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 12px;
+            padding-right: 32px;
+        }
+
+        select:hover {
+            border-color: var(--primary-light);
+            box-shadow: 0 1px 4px rgba(0, 82, 163, 0.08);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(0, 82, 163, 0.1);
+        }
+
+        .button-container {
+            margin-top: 32px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 82, 163, 0.15);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            box-shadow: 0 4px 16px rgba(0, 82, 163, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .result-panel {
+            background: var(--bg-white);
+            border-radius: 6px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .result-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+            letter-spacing: 0.3px;
+        }
+
+        .result-status {
+            font-size: 12px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        .result-status.info {
+            background: #dbeafe;
+            color: #1e40af;
+            display: block;
+        }
+
+        .result-status.loading {
+            background: #fef3c7;
+            color: #92400e;
+            display: block;
+        }
+
+        .result-status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .result-table th {
+            background: var(--primary-lighter);
+            color: var(--primary-color);
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            letter-spacing: 0.2px;
+        }
+
+        .result-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .result-table tbody tr:hover {
+            background: var(--primary-lighter);
+        }
+
+        .result-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .item-name {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .item-value {
+            color: var(--accent-color);
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+
+        .item-value::before {
+            content: '¥ ';
+            margin-right: 2px;
+            font-family: inherit;
+        }
+
+        .prediction-label {
+            font-size: 11px;
+            margin-top: 2px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            display: inline-block;
+            background: var(--primary-lighter);
+            color: var(--primary-color);
+        }
+
+        .loading-dot {
+            display: inline-block;
+            width: 2px;
+            height: 2px;
+            background: currentColor;
+            border-radius: 50%;
+            animation: dot-blink 1.4s infinite;
+            margin: 0 2px;
+        }
+
+        .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes dot-blink {
+            0%, 60%, 100% { opacity: 0.5; }
+            30% { opacity: 1; }
+        }
+
+        .footer {
+            margin-top: auto;
+            padding: 20px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        @media (max-width: 1400px) {
+            .layout-grid {
+                grid-template-columns: 200px 1fr 320px;
+                gap: 16px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .layout-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .sidebar {
+                position: relative;
+                top: 0;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                height: auto;
+                margin-bottom: 20px;
+            }
+
+            .sidebar-title {
+                grid-column: 1 / -1;
+            }
+
+            .menu-item {
+                border-right: 1px solid var(--border-color);
+                border-bottom: none;
+            }
+
+            .result-panel {
+                position: relative;
+                top: 0;
+                order: 3;
+            }
+
+            .content-panel {
+                order: 2;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-title {
+                font-size: 24px;
+            }
+
+            .main-content {
+                margin: 16px auto;
+            }
+
+            .layout-grid {
+                gap: 12px;
+            }
+
+            .sidebar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .content-panel,
+            .result-panel {
+                padding: 16px;
+            }
+
+            .form-group {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+
+            .form-label {
+                text-align: left;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding-right: 0;
+                padding-bottom: 4px;
+            }
+
+            .button-container {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <div class="header">
+            <div class="header-container">
+                <div class="header-title">机动车交通事故民事赔偿智能评估系统</div>
+                <div class="header-subtitle">AI-Powered Compensation Assessment Tool</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="layout-grid">
+                <div class="sidebar">
+                    <div class="sidebar-title">选择分类</div>
+                    <div class="menu-item active" data-tab="1">案件基本信息</div>
+                    <div class="menu-item" data-tab="2">事故形态</div>
+                    <div class="menu-item" data-tab="3">当事人特点</div>
+                    <div class="menu-item" data-tab="4">责任划分</div>
+                    <div class="menu-item" data-tab="5">伤害结果</div>
+                </div>
+
+                <div class="content-panel">
+                    <div class="tab-content active" id="tab-1">
+                        <div class="content-title">案件基本信息</div>
+                        <div id="inputs-1"></div>
+                    </div>
+
+                    <div class="tab-content" id="tab-2">
+                        <div class="content-title">事故形态</div>
+                        <div id="inputs-2"></div>
+                    </div>
+
+                    <div class="tab-content" id="tab-3">
+                        <div class="content-title">当事人特点</div>
+                        <div id="inputs-3"></div>
+                    </div>
+
+                    <div class="tab-content" id="tab-4">
+                        <div class="content-title">责任划分</div>
+                        <div id="inputs-4"></div>
+                    </div>
+
+                    <div class="tab-content" id="tab-5">
+                        <div class="content-title">伤害结果</div>
+                        <div id="inputs-5"></div>
+                    </div>
+
+                    <div class="button-container">
+                        <button class="btn btn-primary" id="predictBtn" onclick="predict()">🚀 开始智能评估</button>
+                    </div>
+                </div>
+
+                <div class="result-panel">
+                    <div class="result-title">赔偿评估结果</div>
+                    <div class="result-status" id="resultStatus"></div>
+                    <table class="result-table">
+                        <thead>
+                            <tr>
+                                <th colspan="2">预测赔偿（单位：元）</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultBody">
+                            <tr>
+                                <td class="item-name">赔偿总金额(法院支持金额)</td>
+                                <td class="item-value" id="r1">--</td>
+                            </tr>
+                            <tr>
+                                <td class="item-name">原告诉请金额</td>
+                                <td class="item-value" id="r2">--</td>
+                            </tr>
+                            <tr>
+                                <td class="item-name">交强险赔付额</td>
+                                <td class="item-value" id="r3">--</td>
+                            </tr>
+                            <tr>
+                                <td class="item-name">商业险赔付金额</td>
+                                <td class="item-value" id="r4">--</td>
+                            </tr>
+                            <tr>
+                                <td class="item-name">个人承担金额</td>
+                                <td class="item-value" id="r5">--</td>
+                            </tr>
+                            <tr>
+                                <td class="item-name">被告受理费支付金额</td>
+                                <td class="item-value" id="r6">--</td>
+                            </tr>
+                            <tr>
+                                <td class="item-name">原告受理费支付金额</td>
+                                <td class="item-value" id="r7">--</td>
+                            </tr>
+                            <tr>
+                                <td class="item-name">误工费</td>
+                                <td class="item-value" id="r8">--</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 机动车交通事故民事赔偿智能评估系统 | 基于600+真实案例数据训练 | 仅供参考</p>
+        </div>
+    </div>
+
+    <script>
+        // 特征分类
+        const featuresByTab = {
+            1: ["法院所在区"],
+            2: ["事故形态", "主体类型", "事故发生地点", "事故时段"],
+            3: ["是否未成年人受害", "是否老年人受害", "受害人身份", "是否营运车辆", "是否网约车/出租车", "是否挂靠", "是否借用/租赁车辆"],
+            4: ["原告责任等级", "被告责任等级"],
+            5: ["伤残等级"]
+        };
+
+        // 选项标签 → 编码值的映射
+        const optionEncodings = {
+            "法院所在区": {
+                "浦东新区": 1, "奉贤区": 2, "普陀区": 3, "杨浦区": 4, "静安区": 5,
+                "闵行区": 6, "虹口区": 7, "金山区": 8, "青浦区": 9, "嘉定区": 10,
+                "松江区": 11, "崇明区": 12, "宝山区": 13, "徐汇区": 14, "黄浦区": 15, "长宁区": 16
+            },
+            "事故形态": {
+                "追尾": 1, "转弯": 2, "碰撞": 3, "倒车": 4, "变道": 5,
+                "停车起步": 6, "开门": 7, "行人/非机动车违规": 8, "闯红灯": 9, "酒驾": 10, "不明": 11
+            },
+            "主体类型": {
+                "机动车 — 机动车": 1, "机动车 — 非机动车": 2, "机动车 — 行人": 3, "单方事故": 4
+            },
+            "事故发生地点": {
+                "城市道路": 1, "路口": 2, "高架": 3, "封闭道路": 4, "高速": 5
+            },
+            "事故时段": {
+                "不明": 1, "白天": 2, "早晚高峰": 3, "夜间": 4
+            },
+            "是否未成年人受害": { "否": 1, "是": 2 },
+            "是否老年人受害": { "否": 1, "是": 2 },
+            "受害人身份": {
+                "从业人员": 1, "未知": 2, "退休": 3, "学生": 4
+            },
+            "是否营运车辆": { "是": 1, "否": 2 },
+            "是否网约车/出租车": { "是": 1, "否": 2 },
+            "是否挂靠": { "否": 1, "是": 2 },
+            "是否借用/租赁车辆": { "否": 1, "是": 2 },
+            "伤残等级": {
+                "未知": 1, "轻微伤害": 2, "中度功能障碍": 3, "死亡": 4, "重伤": 5
+            },
+            "原告责任等级": {
+                "无责": 1, "主责": 2, "次责": 3, "全责": 4, "同责": 5, "不明": 6
+            },
+            "被告责任等级": {
+                "全责": 1, "次责": 2, "主责": 3, "无责": 4, "同责": 5, "不明": 6
+            }
+        };
+
+        // 选项配置
+        const options = {
+            "法院所在区": ["浦东新区", "奉贤区", "普陀区", "杨浦区", "静安区", "闵行区", "虹口区", "金山区", "青浦区", "嘉定区", "松江区", "崇明区", "宝山区", "徐汇区", "黄浦区", "长宁区"],
+            "事故形态": ["追尾", "转弯", "碰撞", "倒车", "变道", "停车起步", "开门", "行人/非机动车违规", "闯红灯", "酒驾", "不明"],
+            "主体类型": ["机动车 — 机动车", "机动车 — 非机动车", "机动车 — 行人", "单方事故"],
+            "事故发生地点": ["城市道路", "路口", "高架", "封闭道路", "高速"],
+            "事故时段": ["不明", "白天", "早晚高峰", "夜间"],
+            "是否未成年人受害": ["否", "是"],
+            "是否老年人受害": ["否", "是"],
+            "受害人身份": ["从业人员", "未知", "退休", "学生"],
+            "是否营运车辆": ["是", "否"],
+            "是否网约车/出租车": ["是", "否"],
+            "是否挂靠": ["否", "是"],
+            "是否借用/租赁车辆": ["否", "是"],
+            "伤残等级": ["未知", "轻微伤害", "中度功能障碍", "死亡", "重伤"],
+            "原告责任等级": ["无责", "主责", "次责", "全责", "同责", "不明"],
+            "被告责任等级": ["全责", "次责", "主责", "无责", "同责", "不明"]
+        };
+
+        // 结果映射
+        const resultMapping = {
+            "赔偿总金额(法院支持金额)": "r1",
+            "原告诉请金额": "r2",
+            "交强险赔付额": "r3",
+            "商业险赔付金额": "r4",
+            "个人承担金额": "r5",
+            "被告受理费支付金额": "r6",
+            "原告受理费支付金额": "r7",
+            "误工费": "r8"
+        };
+
+        // 初始化表单
+        for (let tabId = 1; tabId <= 5; tabId++) {
+            const container = document.getElementById(`inputs-${tabId}`);
+            featuresByTab[tabId].forEach(featureName => {
+                const optionsList = options[featureName] || ["请选择"];
+                const selectHtml = optionsList.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+
+                const html = `
+                    <div class="form-group">
+                        <label class="form-label">${featureName}</label>
+                        <div class="form-control">
+                            <select data-feature="${featureName}">${selectHtml}</select>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        // 菜单切换
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const tabId = this.dataset.tab;
+
+                document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+                this.classList.add('active');
+
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                document.getElementById(`tab-${tabId}`).classList.add('active');
+            });
+        });
+
+        // 预测函数
+        async function predict() {
+            const btn = document.getElementById('predictBtn');
+            const statusDiv = document.getElementById('resultStatus');
+
+            btn.disabled = true;
+            btn.innerHTML = '评估中<span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span>';
+
+            statusDiv.className = 'result-status loading';
+            statusDiv.textContent = '正在调用模型，请稍候...';
+
+            try {
+                // 收集所有输入值
+                const values = {};
+                document.querySelectorAll('select[data-feature]').forEach(select => {
+                    const featureName = select.dataset.feature;
+                    const selectedLabel = select.value;
+                    const encodedValue = optionEncodings[featureName][selectedLabel];
+                    values[featureName] = encodedValue;
+                });
+
+                // 发送到后端
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        stage: 'stage2',
+                        values: values
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.ok && data.results) {
+                    // 显示结果
+                    Object.entries(data.results).forEach(([targetName, resultObj]) => {
+                        const resultId = resultMapping[targetName];
+                        if (resultId) {
+                            const elem = document.getElementById(resultId);
+                            const pred = resultObj['预测金额'];
+                            const label = resultObj['判定类别'];
+
+                            if (pred !== null && pred !== undefined) {
+                                const formatted = pred.toLocaleString('zh-CN', {
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0
+                                });
+                                elem.innerHTML = `<span>${formatted}</span><br/><span class="prediction-label">${label}</span>`;
+                            } else {
+                                elem.textContent = '--';
+                            }
+                        }
+                    });
+
+                    statusDiv.className = 'result-status info';
+                    statusDiv.textContent = '✓ 评估完成！结果已显示在下方表格';
+                } else {
+                    throw new Error('后端返回错误');
+                }
+            } catch (error) {
+                console.error('预测错误:', error);
+                statusDiv.className = 'result-status error';
+                statusDiv.textContent = '❌ 预测失败，请检查网络连接或稍后重试';
+
+                // 清空结果
+                for (let i = 1; i <= 8; i++) {
+                    document.getElementById(`r${i}`).textContent = '--';
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🚀 开始智能评估';
+            }
+        }
+    </script>
+
+</body>
+</html>

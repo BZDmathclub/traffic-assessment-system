@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: traffic-assessment-system
+    runtime: python-3.11
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn -w 2 -b 0.0.0.0:$PORT app:app"
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PYTHONUNBUFFERED
+        value: true
+
+    # 内存和CPU配置（免费方案）
+    plan: free
+
+    # 健康检查
+    healthCheckPath: /
+
+    # 自动部署：当GitHub仓库更新时自动重新部署
+    autoDeploy: true
