@@ -489,8 +489,8 @@
     <div class="page-wrapper">
         <div class="header">
             <div class="header-container">
-                <div class="header-title">机动车交通事故民事赔偿智能评估系统</div>
-                <div class="header-subtitle">AI-Powered Compensation Assessment Tool</div>
+                <div class="header-title">上海地区机动车交通事故赔偿金额预估系统</div>
+                <div class="header-subtitle">Shanghai Traffic Accident Compensation Estimation System</div>
             </div>
         </div>
 
@@ -585,7 +585,7 @@
         </div>
 
         <div class="footer">
-            <p>© 2024 机动车交通事故民事赔偿智能评估系统 | 基于600+真实案例数据训练 | 仅供参考</p>
+            <p>© 2026 上海地区机动车交通事故赔偿金额预估系统 | 基于上海地区真实案例数据训练 | 仅供参考</p>
         </div>
     </div>
 
@@ -751,7 +751,9 @@
                             const label = resultObj['判定类别'];
 
                             if (pred !== null && pred !== undefined) {
-                                const formatted = pred.toLocaleString('zh-CN', {
+                                // 处理负数：如果是负数则显示为 0
+                                const displayValue = pred < 0 ? 0 : pred;
+                                const formatted = displayValue.toLocaleString('zh-CN', {
                                     minimumFractionDigits: 0,
                                     maximumFractionDigits: 0
                                 });
